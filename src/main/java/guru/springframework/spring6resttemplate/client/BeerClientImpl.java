@@ -3,6 +3,7 @@ package guru.springframework.spring6resttemplate.client;
 import guru.springframework.spring6resttemplate.model.BeerDTO;
 import guru.springframework.spring6resttemplate.model.BeerDTOPageImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +14,17 @@ import org.springframework.web.util.UriComponentsBuilder;
 /**
  * Created by jt, Spring Framework Guru.
  */
-@RequiredArgsConstructor
 @Service
 public class BeerClientImpl implements BeerClient {
 
     private final RestTemplateBuilder restTemplateBuilder;
+    
+    @Value("${rest.template.rootUrl}")
+    private String rootUrl;
+
+    public BeerClientImpl(RestTemplateBuilder restTemplateBuilder) {
+        this.restTemplateBuilder = restTemplateBuilder;
+    }
 
     private static final String GET_BEER_PATH = "/api/v1/beer";
 
@@ -25,12 +32,11 @@ public class BeerClientImpl implements BeerClient {
     public Page<BeerDTO> listBeers() {
         RestTemplate restTemplate = restTemplateBuilder.build();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromPath(GET_BEER_PATH);
-
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(rootUrl)
+                .path(GET_BEER_PATH);
 
         ResponseEntity<BeerDTOPageImpl> response =
-                restTemplate.getForEntity(uriComponentsBuilder.toUriString() , BeerDTOPageImpl.class);
-
+                restTemplate.getForEntity(uriComponentsBuilder.toUriString(), BeerDTOPageImpl.class);
 
         return response.getBody();
     }
